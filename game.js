@@ -385,18 +385,17 @@ function showGameOver(loserId) {
 }
 
 function resetGame() {
+    console.log("Resetting game...");
     // Reset room state
     safeUpdate(`rooms/${gameState.room.id}`, {
         status: 'playing',
         waterLevel: 0,
         loser: null
-        // keep turn? or reset? let's keep turn flow or reset to host?
-        // simple: keep turn as is or set to key presser.
-        // let's set random or keep.
     });
 
     // UI Local Reset (listener will catch it but good to force hide)
     displays.gameOver.classList.add('hidden');
+    updateWaterUI(0);
 }
 
 function backToLobby() {
