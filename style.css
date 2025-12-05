@@ -1,0 +1,342 @@
+:root {
+    --primary-color: #3b82f6;
+    --primary-glow: #60a5fa;
+    --water-color: #0ea5e9;
+    --water-top: #7dd3fc;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --font-family: 'Outfit', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* App Container */
+#app {
+    width: 100%;
+    max-width: 480px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Lobby */
+#lobby {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.logo-title {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2rem;
+    letter-spacing: -1px;
+}
+
+.card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    color: white;
+    font-size: 1.1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: var(--primary-color);
+}
+
+.lobby-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.join-group {
+    display: flex;
+    gap: 8px;
+}
+
+.join-group input {
+    flex: 1;
+}
+
+button {
+    font-family: inherit;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.primary-btn {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid var(--glass-border);
+}
+
+#lobbyStatus {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    min-height: 1.2em;
+}
+
+.small {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Game Screen */
+#game {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    position: relative;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.pill {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 1px solid var(--glass-border);
+}
+
+.active-player {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.game-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* The Glass */
+.glass-container {
+    width: 200px;
+    height: 300px;
+    position: relative;
+}
+
+.glass {
+    width: 100%;
+    height: 100%;
+    border-left: 4px solid rgba(255, 255, 255, 0.4);
+    border-right: 4px solid rgba(255, 255, 255, 0.4);
+    border-bottom: 12px solid rgba(255, 255, 255, 0.4);
+    border-radius: 0 0 30px 30px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0.05));
+    box-shadow: inset 0 -10px 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Water Effect */
+.water {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    /* Dynamic */
+    background: var(--water-color);
+    transition: height 0.1s linear;
+    box-shadow: 0 0 20px var(--water-color);
+}
+
+.water::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: var(--water-top);
+    opacity: 0.6;
+    transform: translateY(-50%);
+    filter: blur(2px);
+}
+
+/* When overflow happens - animation classes */
+.spilling .water {
+    background: #ef4444;
+    box-shadow: 0 0 30px #ef4444;
+}
+
+.spill-area {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 100%;
+    background: #ef4444;
+    filter: blur(4px);
+    opacity: 0.8;
+    z-index: 10;
+    animation: spillFlow 0.5s infinite linear;
+}
+
+@keyframes spillFlow {
+    0% {
+        height: 0;
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        height: 110%;
+        opacity: 0;
+    }
+}
+
+.controls-area {
+    padding-bottom: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.action-btn {
+    width: 100%;
+    max-width: 300px;
+    padding: 24px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 16px;
+    background: white;
+    color: var(--primary-color);
+    box-shadow: 0 4px 0 #cbd5e1;
+    transform: translateY(0);
+    transition: all 0.1s;
+}
+
+.action-btn:active,
+.action-btn.active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #cbd5e1;
+    background: #f1f5f9;
+}
+
+/* Overlay */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    animation: fadeIn 0.3s ease;
+}
+
+.result-card {
+    text-align: center;
+    min-width: 300px;
+}
+
+.result-card h2 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.result-card p {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

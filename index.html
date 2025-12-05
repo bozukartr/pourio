@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pour It!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- Lobby View -->
+        <section id="lobby" class="active">
+            <h1 class="logo-title">Pour It!</h1>
+
+            <div class="card glass-panel">
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="10">
+                <div class="lobby-controls">
+                    <button id="createBtn" class="primary-btn">Create Room</button>
+                    <div class="join-group">
+                        <input type="text" id="roomCodeInput" placeholder="Room Code" maxlength="6">
+                        <button id="joinBtn" class="secondary-btn">Join</button>
+                    </div>
+                </div>
+                <div id="lobbyStatus" class="status-text"></div>
+            </div>
+
+            <div id="tips" class="glass-panel small">
+                <p>💡 Hold Space/Touch to fill.</p>
+                <p>⚠️ Don't spill the water!</p>
+            </div>
+        </section>
+
+        <!-- Game View -->
+        <section id="game" class="hidden">
+            <div class="game-header">
+                <div id="roomCodeDisplay" class="pill">Code: ----</div>
+                <div id="turnIndicator" class="pill active-player">Your Turn</div>
+            </div>
+
+            <div class="game-area">
+                <div class="glass-container">
+                    <div class="glass">
+                        <div class="water" id="waterLevel"></div>
+                        <div class="glass-rim"></div>
+                    </div>
+                    <div class="spill-area hidden" id="spillEffect"></div>
+                </div>
+            </div>
+
+            <div class="controls-area">
+                <button id="pourBtn" class="action-btn">HOLD TO POUR</button>
+            </div>
+
+            <!-- Game Over Overlay -->
+            <div id="gameOverOverlay" class="overlay hidden">
+                <div class="glass-panel result-card">
+                    <h2 id="winnerText">Game Over</h2>
+                    <p id="loserText">... spilled the water!</p>
+                    <button id="restartBtn" class="primary-btn">Back to Lobby</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="src/firebase.js"></script>
+    <script type="module" src="game.js"></script>
+</body>
+
+</html>
