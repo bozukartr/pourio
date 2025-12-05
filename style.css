@@ -237,11 +237,65 @@ button:active {
 }
 
 /* When overflow happens - animation classes */
-.spilling .water {
-    background: #ef4444;
-    box-shadow: 0 0 30px #ef4444;
+/* Pour Stream Animation */
+.pour-stream {
+    position: absolute;
+    top: -200px;
+    /* Start from above */
+    left: 50%;
+    width: 6px;
+    height: 200px;
+    background: var(--water-color);
+    transform: translateX(-50%);
+    z-index: 5;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 4px var(--water-color));
+    animation: pourDown 0.3s linear infinite;
+    border-radius: 0 0 4px 4px;
 }
 
+@keyframes pourDown {
+    0% {
+        height: 0;
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        height: 250px;
+    }
+}
+
+/* Enhanced Water Surface */
+.water::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: white;
+    opacity: 0.3;
+    border-radius: 50%;
+    animation: wave 2s infinite ease-in-out;
+}
+
+@keyframes wave {
+
+    0%,
+    100% {
+        transform: scaleX(1);
+    }
+
+    50% {
+        transform: scaleX(0.95);
+    }
+}
+
+/* Spill Effect - Updated */
 .spill-area {
     position: absolute;
     top: -20px;

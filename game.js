@@ -13,7 +13,8 @@ const buttons = {
     create: document.getElementById('createBtn'),
     join: document.getElementById('joinBtn'),
     pour: document.getElementById('pourBtn'),
-    restart: document.getElementById('restartBtn')
+    restart: document.getElementById('restartBtn'),
+    playAgain: document.getElementById('playAgainBtn')
 };
 const displays = {
     water: document.getElementById('waterLevel'),
@@ -75,6 +76,7 @@ function setupEventListeners() {
     });
 
     buttons.restart.addEventListener('click', backToLobby);
+    buttons.playAgain.addEventListener('click', resetGame);
 }
 
 // --- Multiplayer / Firebase Functions ---
@@ -238,6 +240,9 @@ function syncGame(data) {
     // Check Game Over
     if (data.status === 'ended') {
         showGameOver(data.loser);
+    } else if (data.status === 'playing' || data.status === 'waiting') {
+        // Did we just restart?
+        displays.gameOver.classList.add('hidden');
     }
 }
 
@@ -246,24 +251,43 @@ function syncGame(data) {
 let pourInterval = null;
 const FILL_RATE = 0.5; // % per tick
 const TICK_RATE = 20; // ms
+const MAX_POUR_PER_TURN = 20; // 20% limit per turn
+let turnStartWaterLevel = 0; // Track start level
 
 function startPouring() {
     if (gameState.room.currentTurn !== gameState.player.id) return;
     if (gameState.room.status === 'ended') return;
     if (pourInterval) return; // Already pouring
 
+    // Track start level when we START pouring (only set once per turn really, but this works if we don't allow re-grab)
+    // Actually better to set this when turn starts. 
+    // But since we only have start/stop events, let's check relative to what current 'server' state says?
+    // Simplified: When you click, we see how much you've poured so far based on memory?
+    // Better: Just track it in a variable 'pouredThisTurn' that resets on turn change.
+
+    // Instead of complex sync: Let's assume you can hold it multiple times in one turn? 
+    // User requested "each turn players can fill %10". 
+    // Let's enforce: Once you stop, you LOSE your turn? Or you can pour multiple times until 20%?
+    // "Pouring mechanics (hold to pour)" implies continuous.
+    // Let's do: You can pour until 20% limit is hit, OR you release.
+    // If you release, turn ends? Convention is usually yes for this game.
+    // Let's implement: Release = End Turn.
+
+    // So limit is simple: stop if poured > 20% in this single hold.
+    turnStartWaterLevel = gameState.room.waterLevel;
+
     buttons.pour.classList.add('active');
+    document.getElementById('pourStream').classList.remove('hidden');
 
     pourInterval = setInterval(() => {
-        // Optimistic update locally for smoothness, then sync?
-        // For real-time sync, we might just update firebase frequently
-        // or update on release. updating on interval is better for "live" feel but heavy on writes.
-        // Let's do: Local visual update + frequent firebase writes (throttled)
-
-        // For prototype: Write directly.
-        // In prod: throttling is needed.
-
         let newLevel = gameState.room.waterLevel + FILL_RATE;
+        let pouredAmount = newLevel - turnStartWaterLevel;
+
+        // Check Limit
+        if (pouredAmount >= MAX_POUR_PER_TURN) {
+            stopPouring(); // Forced stop
+            return;
+        }
 
         // Update Local immediately for smoothness
         updateWaterUI(newLevel);
@@ -273,8 +297,6 @@ function startPouring() {
         if (newLevel >= 100) {
             triggerGameOver();
         } else {
-            // Sync to DB (Debouncing this would be good)
-            // simplified: sync every tick (careful with quota!)
             safeUpdate(`rooms/${gameState.room.id}`, {
                 waterLevel: newLevel
             });
@@ -289,6 +311,7 @@ function stopPouring() {
     clearInterval(pourInterval);
     pourInterval = null;
     buttons.pour.classList.remove('active');
+    document.getElementById('pourStream').classList.add('hidden');
 
     // End turn
     if (gameState.room.status !== 'ended') {
@@ -312,6 +335,7 @@ function passTurn() {
 function triggerGameOver() {
     clearInterval(pourInterval);
     pourInterval = null;
+    document.getElementById('pourStream').classList.add('hidden');
 
     safeUpdate(`rooms/${gameState.room.id}`, {
         status: 'ended',
@@ -340,6 +364,15 @@ function updateWaterUI(level) {
 function showGameOver(loserId) {
     displays.gameOver.classList.remove('hidden');
 
+    // Only host can reset
+    if (gameState.player.isHost) {
+        buttons.playAgain.classList.remove('hidden');
+    } else {
+        buttons.playAgain.classList.add('hidden'); // Hide for non-host? Or let anyone reset?
+        // Let's let anyone reset for simplicity in this friendly game
+        buttons.playAgain.classList.remove('hidden');
+    }
+
     const loserName = gameState.room.players[loserId] ? gameState.room.players[loserId].name : 'Unknown';
 
     if (loserId === gameState.player.id) {
@@ -349,6 +382,21 @@ function showGameOver(loserId) {
         displays.winnerText.textContent = "You Won!";
         displays.loserText.textContent = `${loserName} spilled the water!`;
     }
+}
+
+function resetGame() {
+    // Reset room state
+    safeUpdate(`rooms/${gameState.room.id}`, {
+        status: 'playing',
+        waterLevel: 0,
+        loser: null
+        // keep turn? or reset? let's keep turn flow or reset to host?
+        // simple: keep turn as is or set to key presser.
+        // let's set random or keep.
+    });
+
+    // UI Local Reset (listener will catch it but good to force hide)
+    displays.gameOver.classList.add('hidden');
 }
 
 function backToLobby() {
@@ -366,6 +414,13 @@ function safeUpdate(path, data) {
         update(ref(db, path), data);
     } else {
         console.warn('Firebase not connected, cannot save:', path, data);
+        // Local simulation for offline play again
+        Object.assign(gameState.room, data);
+        if (data.status === 'ended') showGameOver(data.loser);
+        if (data.status === 'playing') {
+            displays.gameOver.classList.add('hidden');
+            updateWaterUI(0);
+        }
     }
 }
 
