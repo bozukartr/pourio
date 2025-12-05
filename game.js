@@ -215,7 +215,7 @@ function syncGame(data) {
     gameState.room = { ...gameState.room, ...data }; // Merge state
 
     // Update Water UI
-    updateWaterUI(gameState.room.waterLevel);
+    updateWaterUI(gameState.room.waterLevel, gameState.room.turbulence || 0);
 
     // Update Turn UI
     const isMyTurn = gameState.room.currentTurn === gameState.player.id;
@@ -275,30 +275,55 @@ function startPouring() {
 
     // So limit is simple: stop if poured > 20% in this single hold.
     turnStartWaterLevel = gameState.room.waterLevel;
+    let currentTurbulence = 0;
+    let ticksPouring = 0;
 
     buttons.pour.classList.add('active');
     document.getElementById('pourStream').classList.remove('hidden');
 
     pourInterval = setInterval(() => {
-        let newLevel = gameState.room.waterLevel + FILL_RATE;
+        ticksPouring++;
+
+        // --- Physics 2.0: Variable Flow & Turbulence ---
+        // Flow Rate increases slightly over time (0.2 -> 0.8)
+        const flowMultiplier = Math.min(2.0, 1 + (ticksPouring / 50));
+        const currentFillRate = FILL_RATE * flowMultiplier;
+
+        // Turbulence increases with hold time (0 -> 15%)
+        // Rapid taps keep it low. Long holds spike it.
+        if (currentTurbulence < 15) {
+            currentTurbulence += 0.2;
+        }
+
+        // Update Game State
+        gameState.room.turbulence = currentTurbulence; // For syncing visual
+
+        let newLevel = gameState.room.waterLevel + currentFillRate;
         let pouredAmount = newLevel - turnStartWaterLevel;
 
-        // Check Limit
+        // Check Pour Limit
         if (pouredAmount >= MAX_POUR_PER_TURN) {
-            stopPouring(); // Forced stop
+            stopPouring();
             return;
         }
 
-        // Update Local immediately for smoothness
-        updateWaterUI(newLevel);
+        // --- Spill Logic ---
+        // Spill if (Level + Turbulence) > 100
+        // This forces players to pour slowly (tap) when near the top.
+        const effectiveLevel = newLevel + currentTurbulence;
+
+        // Update UI
+        updateWaterUI(newLevel, currentTurbulence);
         gameState.room.waterLevel = newLevel;
 
         // Check Overflow
-        if (newLevel >= 100) {
+        if (effectiveLevel >= 100) {
+            // It spilled due to wave!
             triggerGameOver();
         } else {
             safeUpdate(`rooms/${gameState.room.id}`, {
-                waterLevel: newLevel
+                waterLevel: newLevel,
+                turbulence: currentTurbulence
             });
         }
 
@@ -315,6 +340,10 @@ function stopPouring() {
 
     // End turn
     if (gameState.room.status !== 'ended') {
+        // Reset turbulence on turn end
+        safeUpdate(`rooms/${gameState.room.id}`, {
+            turbulence: 0
+        });
         passTurn();
     }
 }
@@ -344,12 +373,19 @@ function triggerGameOver() {
     });
 }
 
-function updateWaterUI(level) {
+function updateWaterUI(level, turbulence = 0) {
     displays.water.style.height = `${Math.min(level, 100)}%`;
+
+    // Visual Wave Effect in CSS
+    // We pass turbulence to CSS variable
+    document.documentElement.style.setProperty('--wave-height', `${turbulence}%`);
+
+    // Update stream width based on flow? (Simulated by just active class for now)
 
     if (level > 80) {
         displays.water.style.background = '#f59e0b'; // warning color
     }
+    // Note: Spill logic is handled in game loop with effectiveLevel
     if (level >= 100) {
         displays.water.style.background = '#ef4444'; // danger color
         document.querySelector('.glass').classList.add('spilling');
