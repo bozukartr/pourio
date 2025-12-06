@@ -60,8 +60,26 @@ function setupEventListeners() {
     // Mouse/Touch
     buttons.pour.addEventListener('mousedown', startPouring);
     buttons.pour.addEventListener('mouseup', stopPouring);
-    buttons.pour.addEventListener('touchstart', (e) => { e.preventDefault(); startPouring(); });
-    buttons.pour.addEventListener('touchend', (e) => { e.preventDefault(); stopPouring(); });
+    buttons.pour.addEventListener('mousedown', startPouring);
+    buttons.pour.addEventListener('mouseup', stopPouring);
+
+    // Global Touch Support (Touch Anywhere)
+    document.body.addEventListener('touchstart', (e) => {
+        // Only trigger if in game view
+        if (views.game.classList.contains('active')) {
+            if (e.target.tagName !== 'BUTTON') { // Avoid double triggering if touching a button
+                e.preventDefault();
+                startPouring();
+            }
+        }
+    }, { passive: false });
+
+    document.body.addEventListener('touchend', (e) => {
+        if (views.game.classList.contains('active')) {
+            e.preventDefault();
+            stopPouring();
+        }
+    }, { passive: false });
 
     // Keyboard (Space)
     document.addEventListener('keydown', (e) => {
@@ -286,17 +304,17 @@ function startPouring() {
 
         // --- Physics 2.0: Variable Flow & Turbulence ---
         // Flow Rate increases slightly over time (0.2 -> 0.8)
-        const flowMultiplier = Math.min(2.0, 1 + (ticksPouring / 50));
+        const flowMultiplier = Math.min(2.5, 1 + (ticksPouring / 40));
         const currentFillRate = FILL_RATE * flowMultiplier;
 
-        // Turbulence increases with hold time (0 -> 15%)
-        // Rapid taps keep it low. Long holds spike it.
-        if (currentTurbulence < 15) {
-            currentTurbulence += 0.2;
+        // Turbulence increases with hold time (0 -> 25%)
+        // Rapid taps keep it low. Long holds spike it massive.
+        if (currentTurbulence < 25) {
+            currentTurbulence += 0.8;
         }
 
         // Update Game State
-        gameState.room.turbulence = currentTurbulence; // For syncing visual
+        gameState.room.turbulence = currentTurbulence;
 
         let newLevel = gameState.room.waterLevel + currentFillRate;
         let pouredAmount = newLevel - turnStartWaterLevel;
@@ -378,7 +396,11 @@ function updateWaterUI(level, turbulence = 0) {
 
     // Visual Wave Effect in CSS
     // We pass turbulence to CSS variable
-    document.documentElement.style.setProperty('--wave-height', `${turbulence}%`);
+    // Visual Wave Effect in CSS
+    // We pass turbulence to CSS variable
+    // Multiplier for visual drama!
+    const visualWave = turbulence * 1.5;
+    document.documentElement.style.setProperty('--wave-height', `${visualWave}%`);
 
     // Update stream width based on flow? (Simulated by just active class for now)
 

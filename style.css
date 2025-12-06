@@ -236,69 +236,125 @@ button:active {
     filter: blur(2px);
 }
 
-/* When overflow happens - animation classes */
-
-
-.action-btn {
-    width: 100%;
-    max-width: 300px;
-    padding: 24px;
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    border-radius: 16px;
-    background: white;
-    color: var(--primary-color);
-    box-shadow: 0 4px 0 #cbd5e1;
-    transform: translateY(0);
-    transition: all 0.1s;
-}
-
-.action-btn:active,
-.action-btn.active {
-    transform: translateY(4px);
-    box-shadow: 0 0 0 #cbd5e1;
-    background: #f1f5f9;
-}
-
-/* Overlay */
-.overlay {
+/* Pour Stream Animation */
+.pour-stream {
     position: absolute;
-    top: 0;
+    top: -200px;
+    left: 50%;
+    width: 8px;
+    height: 200px;
+    background: linear-gradient(180deg,
+            rgba(14, 165, 233, 0) 0%,
+            var(--water-color) 40%,
+            var(--water-top) 100%);
+    transform: translateX(-50%);
+    z-index: 5;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 5px var(--water-color));
+    animation: pourDown 0.4s linear infinite;
+    border-radius: 0 0 10px 10px;
+}
+
+@keyframes pourDown {
+    0% {
+        height: 0;
+        opacity: 0;
+        border-radius: 50% 50% 10px 10px;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    100% {
+        height: 260px;
+        opacity: 0.9;
+    }
+}
+
+/* Enhanced Water Surface with Dynamic Wave */
+.water::before {
+    content: '';
+    position: absolute;
+    top: -5px;
     left: 0;
     width: 100%;
+    height: 10px;
+    background: white;
+    opacity: 0.3;
+    border-radius: 50%;
+    transform-origin: center;
+    transform: translateY(calc(var(--wave-height, 0%) * -0.5));
+    transition: transform 0.1s;
+    animation: wave 2s infinite ease-in-out;
+}
+
+@keyframes wave {
+
+    0%,
+    100% {
+        transform: scaleX(1);
+    }
+
+    50% {
+        transform: scaleX(0.95);
+    }
+}
+
+/* Turbulence Wave */
+.water::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translateY(calc(var(--wave-height, 0%) * -0.8)) scaleX(0.9);
+    transition: transform 0.1s;
+    opacity: 0.5;
+    animation: turbulenceWave 1s infinite alternate;
+}
+
+@keyframes turbulenceWave {
+    0% {
+        transform: translateY(calc(var(--wave-height, 0%) * -0.8)) scaleX(0.9);
+    }
+
+    100% {
+        transform: translateY(calc(var(--wave-height, 0%) * -1.2)) scaleX(0.92);
+    }
+}
+
+/* Spill Effect */
+.spill-area {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    animation: fadeIn 0.3s ease;
+    background: #ef4444;
+    filter: blur(4px);
+    opacity: 0.8;
+    z-index: 10;
+    animation: spillFlow 0.5s infinite linear;
 }
 
-.result-card {
-    text-align: center;
-    min-width: 300px;
-}
-
-.result-card h2 {
-    font-size: 2rem;
-    margin-bottom: 8px;
-    color: white;
-}
-
-.result-card p {
-    color: var(--text-muted);
-    margin-bottom: 24px;
-}
-
-@keyframes fadeIn {
-    from {
+@keyframes spillFlow {
+    0% {
+        height: 0;
         opacity: 0;
     }
 
-    to {
+    50% {
         opacity: 1;
+    }
+
+    100% {
+        height: 110%;
+        opacity: 0;
     }
 }
 
