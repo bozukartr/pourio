@@ -298,6 +298,8 @@ function startPouring() {
 
     buttons.pour.classList.add('active');
     document.getElementById('pourStream').classList.remove('hidden');
+    console.log("Started Pouring");
+    document.getElementById('debugInfo').textContent = "v6.0 - Pouring...";
 
     pourInterval = setInterval(() => {
         ticksPouring++;
@@ -338,32 +340,20 @@ function startPouring() {
         if (effectiveLevel >= 100) {
             // It spilled due to wave!
             triggerGameOver();
-        } else {
-            safeUpdate(`rooms/${gameState.room.id}`, {
-                waterLevel: newLevel,
-                turbulence: currentTurbulence
-            });
+            pourInterval = null;
+            buttons.pour.classList.remove('active');
+            document.getElementById('pourStream').classList.add('hidden');
+
+            // End turn
+            if (gameState.room.status !== 'ended') {
+                // Reset turbulence on turn end
+                safeUpdate(`rooms/${gameState.room.id}`, {
+                    turbulence: 0
+                });
+                passTurn();
+            }
         }
-
     }, TICK_RATE);
-}
-
-function stopPouring() {
-    if (!pourInterval) return;
-
-    clearInterval(pourInterval);
-    pourInterval = null;
-    buttons.pour.classList.remove('active');
-    document.getElementById('pourStream').classList.add('hidden');
-
-    // End turn
-    if (gameState.room.status !== 'ended') {
-        // Reset turbulence on turn end
-        safeUpdate(`rooms/${gameState.room.id}`, {
-            turbulence: 0
-        });
-        passTurn();
-    }
 }
 
 function passTurn() {
